@@ -2,7 +2,8 @@ import db from '../db/index.js'
 import {userTable} from '../models/user.model.js'
 import {eq} from 'drizzle-orm';
 import bcrypt from 'bcrypt';
-import {userValidationSchema} from '../validations/user.validation.js'
+import {userValidationSchema, userLoginSchema} from '../validations/user.validation.js'
+import jwt from 'jsonwebtoken';
 
 export const signupController = async(req,res)=>{
      try{
@@ -47,4 +48,33 @@ export const signupController = async(req,res)=>{
           })
      }
    
+}
+export const userLogin= async(req,res)=>{
+     const validate = await userLoginSchema.safeParseAsync(req.body)
+     if(validate.error){
+          return res.status(400).json({
+               error:validate.error
+          })
+     }
+     const {email, password}= validate.data
+     const [user] = await db.select().from(userTable)
+     .where(eq(userTable.email, email))
+     if(!user){
+          return res.status(400).json({
+               success: false,
+               message: "user is not existed ",
+               error: true,
+          })
+     }
+     let check = bcrypt.compare(user.password,password);
+     if(!check){
+          return res.status(401).json({
+               success: false,
+               message: "incorrect password!",
+          })
+     }
+     const token = jwt.sign({email:user.email,userId: user.id},"murshad");
+     return res.status(400).json({
+          token: token,
+     })
 }

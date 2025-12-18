@@ -6,3 +6,7 @@ export const userValidationSchema = z.object({
     password: z.string().min(3)
 })
 // here, i create a object userValidationsSchema. and we pass or body objec into this object the zod match the constraints occording to the given schema
+export const userLoginSchema= z.object({
+    email: z.string().email(),
+    password: z.string().min(3)
+})
